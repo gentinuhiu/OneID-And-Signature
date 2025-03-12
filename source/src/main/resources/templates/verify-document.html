@@ -1,0 +1,74 @@
+<head>
+    <title>Login</title>
+    <style>
+        .body-container {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 500px;
+            background: #f4f4f4;
+        }
+        .form-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        input {
+            width: 93%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #option:hover{
+            color:gray;
+        }
+        .document{
+            width: 100%;
+            display: block;
+        }
+    </style>
+</head>
+<div class="body-container">
+    <div class="form-container">
+        <form action="/verify-document" method="post">
+            <h2>Verify Document</h2>
+            <input type="number" name="id" placeholder="Document ID" required>
+            <button type="submit">Verify</button>
+            <br>
+        </form>
+        <div th:if="${error != null}">
+            <p style="color:red;text-align: center" th:text="${error}"></p>
+        </div>
+        <div th:if="${result != null}">
+            <p style="color:green;text-align: center" th:text="${result}"></p>
+        </div>
+    </div>
+
+
+
+</div>
+<div class="document">
+    <iframe th:if="${pdfBase64}" th:src="'data:application/pdf;base64,' + ${pdfBase64}" width="100%" height="600px"></iframe>
+</div>
+<!-- Download link -->
+<p th:if="${pdfId}">
+    <a th:href="@{'/pdf/download/' + ${pdfId}}" download>Download PDF</a>
+</p>

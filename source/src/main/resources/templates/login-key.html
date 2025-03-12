@@ -1,0 +1,163 @@
+<head>
+    <title>Login</title>
+    <style>
+        .body-container {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f4f4f4;
+        }
+        .form-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        input {
+            width: 93%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #option:hover{
+            color:gray;
+        }
+    </style>
+</head>
+
+
+
+<div class="body-container">
+    <div class="form-container">
+        <form method="post" enctype="multipart/form-data" id="login-form">
+            <h2>Private Key Login</h2>
+            <input type="text" id="username" name="username" placeholder="Username" required><br><br>
+            <div id="private-key-popup">
+                <input type="file" id="private-key" accept=".txt" required><br><br>
+            </div>
+            <button type="submit" id="login-button">Login</button>
+            <br>
+            <br>
+            <a href="/login" id="option"><i>Login with Credentials</i></a>
+        </form>
+        <div th:if="${error != null}">
+            <p style="color:red;text-align: center" th:text="${error}"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("login-form");
+        const privateKeyInput = document.getElementById("private-key");
+
+        form.addEventListener("submit", async function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            if (!privateKeyInput.files.length) {
+                alert("Please upload your private key.");
+                return;
+            }
+
+            try {
+                const privateKeyFile = privateKeyInput.files[0];
+                let privateKey = await readFile(privateKeyFile);
+
+                const randomString = await generateRandomString();
+                privateKey = privateKey.replace(/\s+/g, '');
+
+                let signature = await signWithPrivateKey(privateKey, randomString);
+                signature = signature.replace(/\s+/g, '');
+                console.info("Random String:", randomString);
+                console.info("Signature (Base64):", signature);
+
+                // ✅ Send request but DO NOT parse JSON
+                const response = await fetch('/oneid/verifyLogin', {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username: document.getElementById("username").value,
+                        encryptedData: signature,
+                        randomString: randomString
+                    }),
+                    redirect: "follow" // ✅ Let browser follow redirects automatically
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;  // ✅ Follow redirect
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("An error occurred. Please try again.");
+            }
+        });
+
+        async function signWithPrivateKey(privateKeyEncoded, dataToSign) {
+            const binaryDer = Uint8Array.from(atob(privateKeyEncoded), c => c.charCodeAt(0));
+            const privateKey = await window.crypto.subtle.importKey(
+                "pkcs8",
+                binaryDer,
+                {
+                    name: "RSA-PSS",
+                    hash: "SHA-256",
+                },
+                true,
+                ["sign"]
+            );
+
+            const encodedData = new TextEncoder().encode(dataToSign);
+
+            const signature = await window.crypto.subtle.sign(
+                {
+                    name: "RSA-PSS",
+                    saltLength: 32,
+                },
+                privateKey,
+                encodedData
+            );
+
+            return btoa(String.fromCharCode(...new Uint8Array(signature)));
+        }
+
+        async function generateRandomString(length = 32) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        function readFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+    });
+
+
+
+</script>
+
+</html>

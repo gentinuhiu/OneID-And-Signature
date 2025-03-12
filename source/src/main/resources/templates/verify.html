@@ -1,0 +1,107 @@
+<head>
+    <title>Verify</title>
+    <style>
+        .body-container {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f4f4f4;
+        }
+        .form-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        input {
+            width: 93%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #timeleft {
+            font-size: 16px;
+            color: #333;
+            font-weight: bold;
+        }
+        .expired {
+            color: red;
+            font-weight: bold;
+        }
+        #send-again button{
+            background: none;
+            color:black;
+            padding: 0;
+        }
+        #send-again button:hover{
+            color:gray;
+        }
+    </style>
+</head>
+<div class="body-container">
+    <div class="form-container">
+        <h2>Verify Your Email</h2>
+        <i th:text="${email}"></i>
+        <p style="font-size: 12px;" id="time-difference"></p>
+        <div id="send-again">
+            <form method="post" action="/reverify">
+            <input type="hidden" name="email" th:value="${email}">
+            <input type="hidden" name="loginType" th:value="${loginType}">
+            <button type="submit">Send again</button>
+            </form>
+        </div>
+        <form action="/verify" method="post">
+            <input type="hidden" name="email" th:value="${email}">
+            <input type="text" name="code" placeholder="Enter verification code" required>
+            <input type="hidden" name="type" th:value="${type}">
+            <button type="submit">Verify</button>
+        </form>
+        <div th:if="${error != null}">
+            <p style="color:red;text-align: center" th:text="${error}"></p>
+        </div>
+    </div>
+</div>
+<script>
+    const timeLeftString = "[[${timeleft}]]";
+
+    const [hours, minutes, seconds] = timeLeftString.split(':').map(Number);
+    const timeLeftDate = new Date();
+    timeLeftDate.setHours(hours, minutes, seconds, 0);
+
+    function updateTimeDifference() {
+        const now = new Date();
+        const differenceInSeconds = Math.floor((now - timeLeftDate) / 1000);
+
+        const timerElement = document.getElementById('time-difference');
+        let diff = 60 - differenceInSeconds;
+        if (diff >= 0) {
+            timerElement.textContent = `Verification code expires in ${diff} seconds`;
+        } else {
+            timerElement.textContent = `Verification code is expired!`;
+            sendAgainDiv.style.display = "block";
+        }
+    }
+
+    updateTimeDifference();
+    setInterval(updateTimeDifference, 1000);
+    var sendAgainDiv = document.getElementById("send-again");
+    sendAgainDiv.style.display = "none";
+</script>

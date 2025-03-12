@@ -1,0 +1,129 @@
+<head>
+    <title>Register</title>
+    <style>
+        .body-container {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f4f4f4;
+        }
+        .form-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        input {
+            width: 93%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .password-requirements {
+            font-size: 12px;
+            margin-top: 5px;
+            color: gray;
+        }
+        .password-requirements.valid {
+            color: green;
+        }
+        .password-requirements.invalid {
+            color: red;
+        }
+        .roles{
+            display: grid;
+            grid-template-columns: auto auto;
+        }
+    </style>
+</head>
+<body>
+<div class="body-container">
+    <div class="form-container">
+        <form action="/register" method="post">
+            <h2>Register</h2>
+
+            <div th:if="${passwordError == null}">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="email" name="email" placeholder="Email" required>
+            </div>
+            <div th:if="${passwordError}">
+                <input type="text" name="username" placeholder="Username" th:value="${username}" required>
+                <input type="email" name="email" placeholder="Email" th:value="${email}" required>
+            </div>
+            <input type="password" id="password" name="password" placeholder="Password" required oninput="validatePassword(this.value)">
+
+<!--            <div class="roles">-->
+<!--            <label class="role-option">-->
+<!--                <input type="radio" name="role" value="Admin" required>-->
+<!--                Admin-->
+<!--            </label>-->
+<!--            <label class="role-option">-->
+<!--                <input type="radio" name="role" value="User" checked>-->
+<!--                User-->
+<!--            </label>-->
+<!--            </div>-->
+
+            <div id="password-feedback" style="text-align: left">
+                <ul>
+                    <li><div class="password-requirements" id="length">At least 8 characters</div></li>
+                    <li><div class="password-requirements" id="uppercase">At least one uppercase letter</div></li>
+                    <li><div class="password-requirements" id="lowercase">At least one lowercase letter</div></li>
+                    <li><div class="password-requirements" id="number">At least one number</div></li>
+                    <li><div class="password-requirements" id="special">At least one special character (@$!%*?&.)</div></li>
+                </ul>
+            </div>
+            <button type="submit">Register</button>
+        </form>
+        <div th:if="${error != null}">
+            <p style="color:red;text-align: center" th:text="${error}"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    function validatePassword(password) {
+        // Define the regex components
+        const lengthRequirement = /.{8,}/;
+        const uppercaseRequirement = /[A-Z]/;
+        const lowercaseRequirement = /[a-z]/;
+        const numberRequirement = /\d/;
+        const specialRequirement = /[@$!%*?&.]/;
+
+        // Check each requirement
+        toggleRequirement('length', lengthRequirement.test(password));
+        toggleRequirement('uppercase', uppercaseRequirement.test(password));
+        toggleRequirement('lowercase', lowercaseRequirement.test(password));
+        toggleRequirement('number', numberRequirement.test(password));
+        toggleRequirement('special', specialRequirement.test(password));
+    }
+
+    function toggleRequirement(id, isValid) {
+        const element = document.getElementById(id);
+        if (isValid) {
+            element.classList.add('valid');
+            element.classList.remove('invalid');
+        } else {
+            element.classList.add('invalid');
+            element.classList.remove('valid');
+        }
+    }
+</script>
+</body>
