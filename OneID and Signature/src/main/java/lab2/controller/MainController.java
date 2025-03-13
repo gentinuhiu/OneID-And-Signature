@@ -25,6 +25,10 @@ public class MainController {
     @GetMapping
     public String welcome(Model model, HttpServletRequest request) throws Exception {
         User user = (User) request.getSession().getAttribute("user");
+
+        if(user == null)
+            return "redirect:/login";
+
         model.addAttribute("bodyContent", "welcome");
         model.addAttribute("user", user);
         if(user.getCardFace() != null)
